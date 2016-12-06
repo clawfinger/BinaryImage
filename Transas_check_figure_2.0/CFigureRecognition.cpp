@@ -60,24 +60,48 @@ void CFigureRecognition::showImage()
 
 void CFigureRecognition::markFigures()
 {
-	int r, c;
-	int currentNum = 0;
-	for (r = 0; r < MATRIX_RESOLUTION; r++)
+	int currentNum = 1;
+	for (int r = 1; r < MATRIX_RESOLUTION; r++)
 	{
-		for (c = 0; c < MATRIX_RESOLUTION; c++)
+		for (int c = 1; c < MATRIX_RESOLUTION; c++)
 		{
+			int B, C;
+			B = (*m_image)[r][c - 1];
+			C = (*m_image)[r - 1][c];
+
 			if ((*m_image)[r][c] == 0)
 			{
 				continue;
 			}
-			else if((*m_image)[r-1][c] == 0 && (*m_image)[r][c+1] == 0)
+			else
 			{
-				currentNum++;
-				(*m_image)[r][c] = currentNum;
-				m_figurePoints->push_back(std::pair<int, int>(r, c));
-			}
-			else if()
+				if (B == 0 && C == 0)
+				{
+					currentNum++;
+					(*m_image)[r][c] = currentNum;
+					m_figurePoints->push_back(std::pair<int, int>(r, c));
+				}
+				else if (B != 0 && C == 0)
+				{
+					(*m_image)[r][c] = B;
+				}
+				else if (B == 0 && C != 0)
+				{
+					(*m_image)[r][c] = C;
+				}
+				else if (B != 0 && C != 0)
+				{
+					if (B == C)
+					{
+						(*m_image)[r][c] = C;
+					}
+					else
+					{
+						(*m_image)[r][c] = C;
+					}
 
+				}
+			}
 		}
 	}
 }
