@@ -7,7 +7,8 @@
 int main()
 {
 	CFigureRecognition instance;
-	instance.readFile("square1.txt");
+	instance.readFile("circle.txt");
+	instance.markFigures();
 	instance.showImage();
 	system("pause");
     return 0;

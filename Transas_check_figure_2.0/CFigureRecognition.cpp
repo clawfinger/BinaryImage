@@ -97,7 +97,7 @@ void CFigureRecognition::markFigures()
 					}
 					else
 					{
-						(*m_image)[r][c] = C;
+						(*m_image)[r][c] = std::min(B, C);
 					}
 
 				}
