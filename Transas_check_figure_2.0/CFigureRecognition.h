@@ -21,8 +21,12 @@ public:
 	void markFigures();
 private:
 	enum { MATRIX_RESOLUTION = 15};
+	int m_parentArray[MATRIX_RESOLUTION+1];
 	std::vector<std::vector<int>>* m_image;
 	std::vector<std::pair<int, int>>* m_figurePoints;
+	int findParent(int label);
+	void unionParent(int B, int C);
+	void makeParent(int label);
 };
 
 #endif

@@ -4,6 +4,7 @@
 
 using std::vector;
 
+
 CFigureRecognition::CFigureRecognition(int resolution)
 {
 	m_image = new vector<vector<int>>(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
@@ -36,11 +37,13 @@ bool CFigureRecognition::readFile(std::string fileName)
 			if (character != '\n')
 			{
 				(*m_image)[r][c] = (std::stoi(&character));
+			
 			}
 			else break;
 			input.get(character);
 		}
 		input.get(character);
+		
 	}
 	return true;
 }
@@ -76,11 +79,11 @@ void CFigureRecognition::markFigures()
 			else
 			{
 
-				/*if (B == 0 && C == 0)
+				if (B == 0 && C == 0)
 				{
-					currentNum++;
 					(*m_image)[r][c] = currentNum;
-					m_figurePoints->push_back(std::pair<int, int>(r, c));
+					m_parentArray[currentNum] = currentNum;
+					currentNum++;					
 				}
 				else if (B != 0 && C == 0)
 				{
@@ -98,11 +101,53 @@ void CFigureRecognition::markFigures()
 					}
 					else
 					{
-						(*m_image)[r][c] = std::min(B, C);
+						(*m_image)[r][c] = std::min(B,C);
+						unionParent(B, C);
 					}
 
-				}*/
+				}
+			}
+		}
+	}
+	for (int r = 1; r < MATRIX_RESOLUTION; r++)
+	{
+		for (int c = 1; c < MATRIX_RESOLUTION; c++)
+		{
+			int A = (*m_image)[r][c];
+			if (A == 0)
+			{
+				continue;
+			}
+			else
+			{
+				int currentLabel = findParent(A);
+				(*m_image)[r][c] = currentLabel;
+				//m_figurePoints->push_back(std::pair<int, int>(r, c));
 			}
 		}
 	}
 }
+
+
+int CFigureRecognition::findParent(int label)
+{
+	if (m_parentArray[label] == label)
+		return label;
+	else return findParent(m_parentArray[label]);
+}
+
+void CFigureRecognition::unionParent(int B, int C)
+{
+	int rootB = findParent(B);
+	int rootC = findParent(C);
+	if (rootB != rootC)
+	{
+		m_parentArray[rootB] = rootC;
+	}
+}
+
+void CFigureRecognition::makeParent(int label)
+{
+	m_parentArray[label] = label;
+}
+
