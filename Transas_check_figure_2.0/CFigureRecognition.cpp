@@ -75,7 +75,8 @@ void CFigureRecognition::markFigures()
 			}
 			else
 			{
-				if (B == 0 && C == 0)
+
+				/*if (B == 0 && C == 0)
 				{
 					currentNum++;
 					(*m_image)[r][c] = currentNum;
@@ -100,7 +101,7 @@ void CFigureRecognition::markFigures()
 						(*m_image)[r][c] = std::min(B, C);
 					}
 
-				}
+				}*/
 			}
 		}
 	}
