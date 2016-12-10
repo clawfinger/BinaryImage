@@ -2,13 +2,25 @@
 #include "stdafx.h"
 #include "CFigureRecognition.h"
 
-using std::vector;
+
+
+
+SFigure::SFigure(int l, int r, int c)
+{
+	label = l;
+	row = r;
+	column = c;
+	perimeter = 0;
+	square = 0;
+}
+
+
 
 
 CFigureRecognition::CFigureRecognition(int resolution)
 {
 	m_image = new vector<vector<int>>(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
-	m_figurePoints = new std::vector<std::pair<int, int>>;
+	m_figurePoints = new std::map<int, SFigure>;
 }
 
 CFigureRecognition::~CFigureRecognition()
@@ -64,25 +76,22 @@ void CFigureRecognition::showImage()
 void CFigureRecognition::markFigures()
 {
 	int currentNum = 1;
+	int B, C;
 	for (int r = 1; r < MATRIX_RESOLUTION; r++)
 	{
 		for (int c = 1; c < MATRIX_RESOLUTION; c++)
 		{
-			int B, C;
+			
 			B = (*m_image)[r][c - 1];
 			C = (*m_image)[r - 1][c];
 
-			if ((*m_image)[r][c] == 0)
-			{
-				continue;
-			}
-			else
+			if ((*m_image)[r][c] == 1)
 			{
 
 				if (B == 0 && C == 0)
 				{
 					(*m_image)[r][c] = currentNum;
-					m_parentArray[currentNum] = currentNum;
+					makeParent(currentNum);
 					currentNum++;					
 				}
 				else if (B != 0 && C == 0)
@@ -109,9 +118,11 @@ void CFigureRecognition::markFigures()
 			}
 		}
 	}
-	for (int r = 1; r < MATRIX_RESOLUTION; r++)
+
+
+	for (int r = 0; r < MATRIX_RESOLUTION; r++)
 	{
-		for (int c = 1; c < MATRIX_RESOLUTION; c++)
+		for (int c = 0; c < MATRIX_RESOLUTION; c++)
 		{
 			int A = (*m_image)[r][c];
 			if (A == 0)
@@ -122,10 +133,41 @@ void CFigureRecognition::markFigures()
 			{
 				int currentLabel = findParent(A);
 				(*m_image)[r][c] = currentLabel;
-				//m_figurePoints->push_back(std::pair<int, int>(r, c));
+				m_figurePoints->emplace(currentLabel, SFigure(currentLabel, r, c));
+				m_figurePoints->at(currentLabel).square++;
+				m_figurePoints->at(currentLabel).centroidRows.push_back(r);
+				m_figurePoints->at(currentLabel).centroidColumns.push_back(c);
 			}
 		}
 	}
+}
+
+void CFigureRecognition::_showFiguresList()
+{
+	for (auto x : (*m_figurePoints))
+	{
+		std::cout << "Figure label: " << x.first << std::endl;
+		std::cout << "Figure upper leftmost corner [row:column]: [" << x.second.row 
+			<< ':'  << x.second.column << ']'<< std::endl;
+		std::cout << "Figure square: " << x.second.square << std::endl;
+		int sumOfRows = 0;
+		int sumOfColumns = 0;
+		int sizeOfRows = x.second.centroidRows.size();
+		int sizeOfColumns = x.second.centroidColumns.size();
+		for (auto i : x.second.centroidColumns)
+		{
+			sumOfColumns += i;
+		}
+		for (auto i : x.second.centroidRows)
+		{
+			sumOfRows += i;
+		}
+
+		std::cout << "Centroid row: " << (float(sumOfRows) / sizeOfRows) << std::endl;
+		std::cout << "Centroid column: " << (float(sumOfColumns) / sizeOfColumns) << std::endl;
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 }
 
 
@@ -150,4 +192,5 @@ void CFigureRecognition::makeParent(int label)
 {
 	m_parentArray[label] = label;
 }
+
 

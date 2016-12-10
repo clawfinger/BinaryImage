@@ -7,10 +7,11 @@
 int main()
 {
 	CFigureRecognition instance;
-	instance.readFile("square1.txt");
+	instance.readFile("circle.txt");
 	instance.showImage();
 	std::cout << std::endl;
 	instance.markFigures();
+	instance._showFiguresList();
 	instance.showImage();
 	system("pause");
     return 0;

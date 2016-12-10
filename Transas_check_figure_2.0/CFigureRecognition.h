@@ -2,6 +2,7 @@
 #define CFIGUREREGNITION_H
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -9,7 +10,19 @@
 #include <algorithm>
 #include <cmath>
 
+using std::vector;
 
+struct SFigure
+{
+	SFigure(int l, int r, int c);
+	int label;
+	int row;
+	int column;
+	int square;
+	int perimeter;
+	vector<int> centroidRows;
+	vector<int> centroidColumns;
+};
 
 class CFigureRecognition
 {
@@ -19,11 +32,12 @@ public:
 	bool readFile(std::string);
 	void showImage();
 	void markFigures();
-private:
-	enum { MATRIX_RESOLUTION = 15};
+	void _showFiguresList();
+	enum { MATRIX_RESOLUTION = 15 };
+private:	
 	int m_parentArray[MATRIX_RESOLUTION+1];
 	std::vector<std::vector<int>>* m_image;
-	std::vector<std::pair<int, int>>* m_figurePoints;
+	std::map<int, SFigure>* m_figurePoints;
 	int findParent(int label);
 	void unionParent(int B, int C);
 	void makeParent(int label);
