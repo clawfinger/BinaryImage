@@ -20,8 +20,11 @@ struct SFigure
 	int column;
 	int square;
 	int perimeter;
+	int centroidRow;
+	int centroidColumn;
 	vector<int> centroidRows;
 	vector<int> centroidColumns;
+	vector<std::pair<int, int>> borderPoints;
 };
 
 class CFigureRecognition
@@ -41,6 +44,7 @@ private:
 	int findParent(int label);
 	void unionParent(int B, int C);
 	void makeParent(int label);
+	
 };
 
 #endif

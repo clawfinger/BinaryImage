@@ -125,18 +125,35 @@ void CFigureRecognition::markFigures()
 		for (int c = 0; c < MATRIX_RESOLUTION; c++)
 		{
 			int A = (*m_image)[r][c];
-			if (A == 0)
 			{
-				continue;
-			}
-			else
-			{
-				int currentLabel = findParent(A);
-				(*m_image)[r][c] = currentLabel;
-				m_figurePoints->emplace(currentLabel, SFigure(currentLabel, r, c));
-				m_figurePoints->at(currentLabel).square++;
-				m_figurePoints->at(currentLabel).centroidRows.push_back(r);
-				m_figurePoints->at(currentLabel).centroidColumns.push_back(c);
+				if (A == 0)
+				{
+					continue;
+				}
+				else
+				{
+					int currentLabel = findParent(A);
+					(*m_image)[r][c] = currentLabel;
+					m_figurePoints->emplace(currentLabel, SFigure(currentLabel, r, c));
+					//square
+					m_figurePoints->at(currentLabel).square++;
+					//centroid
+					m_figurePoints->at(currentLabel).centroidRows.push_back(r);
+					m_figurePoints->at(currentLabel).centroidColumns.push_back(c);
+
+					//perimeter
+					int B = (*m_image)[r][c - 1];
+					int C = (*m_image)[r - 1][c];
+					int D = (*m_image)[r][c + 1];
+					int E = (*m_image)[r + 1][c];
+
+					if (!(B && C && D && E))
+					{
+						m_figurePoints->at(currentLabel).borderPoints.push_back(std::pair<int, int>(r, c));
+
+						
+					}
+				}
 			}
 		}
 	}
@@ -165,6 +182,8 @@ void CFigureRecognition::_showFiguresList()
 
 		std::cout << "Centroid row: " << (float(sumOfRows) / sizeOfRows) << std::endl;
 		std::cout << "Centroid column: " << (float(sumOfColumns) / sizeOfColumns) << std::endl;
+		//std::cout << "Perimeter: " << x.second.perimeter << std::endl;
+		//std::cout << "Circularity: " << ((float)(x.second.perimeter*x.second.perimeter) / x.second.square) << std::endl;
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
