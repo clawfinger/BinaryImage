@@ -1,0 +1,136 @@
+circle5.txt
+Label: 1
+Square: 21
+Circularity: 1.41491
+Haralicks: 19.3863
+Deviation: 0.111284
+Radial distance ratio: 1.11803
+
+circle6a.txt
+Label: 1
+Square: 24
+Circularity: 1.28606
+Haralicks: 11.9236
+Deviation: 0.20185
+Radial distance ratio: 1.20185
+
+circle6b.txt
+Label: 1
+Square: 32
+Circularity: 1.28983
+Haralicks: 14.933
+Deviation: 0.182983
+Radial distance ratio: 1.14354
+
+circle7.txt
+Label: 1
+Square: 37
+Circularity: 1.24646
+Haralicks: 22.0049
+Deviation: 0.138071
+Radial distance ratio: 1.11803
+
+circle8.txt
+Label: 1
+Square: 52
+Circularity: 1.20224
+Haralicks: 27.3148
+Deviation: 0.133425
+Radial distance ratio: 1.07703
+
+circle9a.txt
+Label: 1
+Square: 57
+Circularity: 1.14876
+Haralicks: 16.369
+Deviation: 0.237734
+Radial distance ratio: 1.14354
+
+circle9b.txt
+Label: 1
+Square: 69
+Circularity: 1.16224
+Haralicks: 23.6527
+Deviation: 0.179212
+Radial distance ratio: 1.11803
+
+circle9c.txt
+Label: 1
+Square: 61
+Circularity: 1.02749
+Haralicks: 15.5862
+Deviation: 0.25343
+Radial distance ratio: 1.1767
+
+circle10a.txt
+Label: 1
+Square: 68
+Circularity: 1.01813
+Haralicks: 14.017
+Deviation: 0.30051
+Radial distance ratio: 1.18903
+
+circle10b.txt
+Label: 1
+Square: 76
+Circularity: 1.13791
+Haralicks: 25.0549
+Deviation: 0.180567
+Radial distance ratio: 1.10282
+
+circle10c.txt
+Label: 1
+Square: 80
+Circularity: 1.02525
+Haralicks: 20.4772
+Deviation: 0.223903
+Radial distance ratio: 1.15079
+
+square5.txt
+Label: 1
+Square: 25
+Circularity: 1.22718
+Haralicks: 7.59508
+Deviation: 0.306138
+Radial distance ratio: 1.41421
+
+square6.txt
+Label: 1
+Square: 36
+Circularity: 1.13097
+Haralicks: 8.02506
+Deviation: 0.360508
+Radial distance ratio: 1.38675
+
+square7.txt
+Label: 1
+Square: 49
+Circularity: 1.06901
+Haralicks: 8.30315
+Deviation: 0.417077
+Radial distance ratio: 1.41421
+
+square8.txt
+Label: 1
+Square: 64
+Circularity: 1.02583
+Haralicks: 8.48978
+Deviation: 0.475175
+Radial distance ratio: 1.4
+
+square9.txt
+Label: 1
+Square: 81
+Circularity: 0.994019
+Haralicks: 8.61971
+Deviation: 0.534347
+Radial distance ratio: 1.41421
+
+square10.txt
+Label: 1
+Square: 100
+Circularity: 0.969627
+Haralicks: 8.71317
+Deviation: 0.594293
+Radial distance ratio: 1.40556
+
