@@ -12,6 +12,8 @@
 
 using std::vector;
 
+//void gatherData(void);
+
 struct SFigure
 {
 	SFigure(int l, int r, int c);
@@ -19,9 +21,15 @@ struct SFigure
 	int row;
 	int column;
 	int square;
-	int perimeter;
-	int centroidRow;
-	int centroidColumn;
+	double perimeter;
+	double centroidRow;
+	double centroidColumn;
+	double haralickCircularity;
+	double circularity;
+	double minRadialDistance;
+	double maxRadialDistance;
+	double radialDistanceRatio;
+	int extremalAxisLength;
 	vector<int> centroidRows;
 	vector<int> centroidColumns;
 	vector<std::pair<int, int>> borderPoints;
@@ -32,18 +40,38 @@ class CFigureRecognition
 public:
 	CFigureRecognition(int resolution = MATRIX_RESOLUTION);
 	~CFigureRecognition();
+
+	void markFigures();
+	void figureClosing();
 	bool readFile(std::string);
 	void showImage();
-	void markFigures();
+	void makeDecision();
+
 	void _showFiguresList();
+
+	void saveToFile(std::string fileName);
 	enum { MATRIX_RESOLUTION = 15 };
 private:	
-	int m_parentArray[MATRIX_RESOLUTION+1];
+	int m_parentArray[MATRIX_RESOLUTION + 1];
+
 	std::vector<std::vector<int>>* m_image;
-	std::map<int, SFigure>* m_figurePoints;
+	std::vector<std::vector<int>>* m_tempImage;
+
+	std::map<int, SFigure>* m_figurePoints;	
+
 	int findParent(int label);
 	void unionParent(int B, int C);
 	void makeParent(int label);
+
+	void calculatePerimeter();
+	bool isBorderPoint(int r, int c);
+	void calculateHaralickCircularity();
+	void calculateCircularity();
+	void calculateCentroid();	
+	void calculateAxis();
+
+	vector<std::pair<int, int>> getDiagonalPoints(int r, int c);
+	vector<std::pair<int, int>> getNeighborPoints(int r, int c);
 	
 };
 
