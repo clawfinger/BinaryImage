@@ -49,7 +49,7 @@ private:
 	};
 
 	//members
-	int m_parentArray[MATRIX_RESOLUTION + 1];
+	int m_parentArray[MATRIX_RESOLUTION];
 	std::vector<std::vector<int>> m_image;
 	std::vector<std::vector<int>> m_tempImage;
 	std::map<int, SFigure> m_figurePoints;	
