@@ -12,8 +12,6 @@
 
 using std::vector;
 
-//void gatherData(void);
-
 struct SFigure
 {
 	SFigure(int l, int r, int c);
@@ -35,21 +33,15 @@ struct SFigure
 	vector<std::pair<int, int>> borderPoints;
 };
 
+
 class CFigureRecognition
 {
 public:
 	CFigureRecognition(int resolution = MATRIX_RESOLUTION);
 	~CFigureRecognition();
-
-	void markFigures();
-	void figureClosing();
 	bool readFile(std::string);
 	void showImage();
 	void makeDecision();
-
-	void _showFiguresList();
-
-	void saveToFile(std::string fileName);
 	enum { MATRIX_RESOLUTION = 15 };
 private:	
 	int m_parentArray[MATRIX_RESOLUTION + 1];
@@ -63,6 +55,8 @@ private:
 	void unionParent(int B, int C);
 	void makeParent(int label);
 
+	void markFigures();
+	void figureClosing();
 	void calculatePerimeter();
 	bool isBorderPoint(int r, int c);
 	void calculateHaralickCircularity();
@@ -73,6 +67,7 @@ private:
 	vector<std::pair<int, int>> getDiagonalPoints(int r, int c);
 	vector<std::pair<int, int>> getNeighborPoints(int r, int c);
 	
+
 };
 
 #endif

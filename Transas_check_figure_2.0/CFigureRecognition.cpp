@@ -5,7 +5,7 @@
 
 
 
-SFigure::SFigure(int l, int r, int c)
+SFigure::SFigure(int l, int r, int c)  //structure, describing figure properties
 {
 	label = l;
 	row = r;
@@ -37,7 +37,7 @@ CFigureRecognition::~CFigureRecognition()
 	delete m_figurePoints;
 }
 
-bool CFigureRecognition::readFile(std::string fileName)
+bool CFigureRecognition::readFile(std::string fileName)   
 {
 	std::ifstream input(fileName);
 
@@ -84,7 +84,7 @@ void CFigureRecognition::showImage()
 	}
 }
 
-void CFigureRecognition::markFigures()
+void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-find 
 {
 	int currentNum = 1;
 	int B, C;
@@ -166,10 +166,19 @@ void CFigureRecognition::markFigures()
 
 void CFigureRecognition::makeDecision()
 {
+	markFigures();
+	figureClosing();
+	calculateCentroid();
+	calculatePerimeter();
+	calculateHaralickCircularity();
+	calculateCircularity();
+	calculateAxis();
+
+
 	for (auto figure : (*m_figurePoints))
 	{
 		figure.second.radialDistanceRatio *= 10;		
-
+		//magic numbers picked from data.txt
 		std::cout << "Figure label: " << figure.first << std::endl;
 		if (figure.second.square < 21 || figure.second.square > 100)
 			std::cout << "Unknown figure" << std::endl;
@@ -192,37 +201,6 @@ void CFigureRecognition::makeDecision()
 	}
 }
 
-void CFigureRecognition::_showFiguresList()
-{
-	for (auto x : (*m_figurePoints))
-	{
-
-		calculateCentroid();
-		calculatePerimeter();
-		calculateHaralickCircularity();
-		calculateCircularity();
-		calculateAxis();
-		std::cout << "Figure label: " << x.first << std::endl;
-		std::cout << "Figure upper leftmost corner [row:column]: [" << x.second.row
-			<< ':' << x.second.column << ']' << std::endl;
-		std::cout << "Figure square: " << x.second.square << std::endl;
-		std::cout << "Centroid row: " << m_figurePoints->at(x.first).centroidRow << std::endl;
-		std::cout << "Centroid column: " << m_figurePoints->at(x.first).centroidColumn << std::endl;		
-		std::cout << "Perimeter: " << m_figurePoints->at(x.first).perimeter << std::endl;		
-		std::cout << "Haralick's Circularity: " << m_figurePoints->at(x.first).haralickCircularity << std::endl;		
-		std::cout << "Circularity: " << m_figurePoints->at(x.first).circularity << std::endl;
-		
-		std::cout << "Radial distance ratio: " << m_figurePoints->at(x.first).maxRadialDistance / m_figurePoints->at(x.first).minRadialDistance << std::endl;
-		std::cout << "Minimal radial distance: " << m_figurePoints->at(x.first).minRadialDistance << std::endl;
-		std::cout << "Maximum radial distance: " << m_figurePoints->at(x.first).maxRadialDistance << std::endl;
-		std::cout << std::endl;
-		std::cout << "--------------------------------------------------------------" << std::endl;
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-}
-
-
 
 void CFigureRecognition::calculateHaralickCircularity()
 {
@@ -238,27 +216,33 @@ void CFigureRecognition::calculateHaralickCircularity()
 
 		double min = std::sqrt(std::pow((figures.second.row - centroidRow), 2)
 			+ std::pow((figures.second.column - centroidColumn), 2));
-		double max = min;;
+		double max = min;
 
 		for (auto borderPoint : figures.second.borderPoints)
 		{
 			radialDistance = std::sqrt(std::pow((borderPoint.first - centroidRow), 2)
 				+ std::pow((borderPoint.second - centroidColumn), 2));
+
+
 			if (radialDistance > max)
 			{
 				max = radialDistance;
 			}
+
 			if (radialDistance < min)
 			{
 				min = radialDistance;
 			}
+			
 			sum += radialDistance;
 		}
 
 		m_figurePoints->at(figures.first).minRadialDistance = min;
 		m_figurePoints->at(figures.first).maxRadialDistance = max;
 		m_figurePoints->at(figures.first).radialDistanceRatio = max / min;
+
 		meanRadialDistance = sum / figures.second.borderPoints.size();
+
 		sum = 0;
 
 		for (auto borderPoint : figures.second.borderPoints)
@@ -266,6 +250,7 @@ void CFigureRecognition::calculateHaralickCircularity()
 			sum += std::pow(std::sqrtf(std::pow((borderPoint.first - centroidRow), 2)
 				+ std::pow((borderPoint.second - centroidColumn), 2)) - meanRadialDistance, 2);
 		}
+
 		standartDeviation = std::sqrtf(sum / figures.second.borderPoints.size());
 		m_figurePoints->at(figures.first).haralickCircularity = meanRadialDistance / standartDeviation;
 		
@@ -299,12 +284,12 @@ void CFigureRecognition::calculateCentroid()
 		{
 			sumOfRows += i;
 		}
-		m_figurePoints->at(x.first).centroidRow = (float(sumOfRows) / sizeOfRows);
-		m_figurePoints->at(x.first).centroidColumn = (float(sumOfColumns) / sizeOfColumns);
+		m_figurePoints->at(x.first).centroidRow = (double(sumOfRows) / sizeOfRows);
+		m_figurePoints->at(x.first).centroidColumn = (double(sumOfColumns) / sizeOfColumns);
 	}
 }
 
-void CFigureRecognition::calculateAxis()
+void CFigureRecognition::calculateAxis()  //calculating the length of X axis
 {
 	int xAxisLenght = 0;
 	int yAxisLenght = 0;
@@ -413,6 +398,7 @@ void CFigureRecognition::figureClosing()
 }
 
 
+
 int CFigureRecognition::findParent(int label)
 {
 	if (m_parentArray[label] == label)
@@ -435,6 +421,8 @@ void CFigureRecognition::makeParent(int label)
 	m_parentArray[label] = label;
 }
 
+
+
 void CFigureRecognition::calculatePerimeter()
 {
 
@@ -444,13 +432,13 @@ void CFigureRecognition::calculatePerimeter()
 		int numOfDiagonalConnections = 0;
 		for (auto borderPoint : figure.second.borderPoints)
 		{
-			//проверяем диагональные точки
+			//checking diagonal neighbors
 			vector<std::pair<int, int>> diagonalPoints = getDiagonalPoints(borderPoint.first, borderPoint.second);
 			for (auto x : diagonalPoints)
 			{
 				if (isBorderPoint(x.first, x.second))
 				{
-					//если точки между текущей и диагональной не граничные то добавляем к А еденицу
+					//Incrementing A if both points betwin checked pair is not border points
 					if (!isBorderPoint(borderPoint.first, x.second) && !isBorderPoint(x.first, borderPoint.second))
 					{
 						numOfDiagonalConnections++;
@@ -486,7 +474,7 @@ bool CFigureRecognition::isBorderPoint(int r, int c)
 	else return false;
 }
 
-vector<std::pair<int, int>> CFigureRecognition::getDiagonalPoints(int r, int c)
+vector<std::pair<int, int>> CFigureRecognition::getDiagonalPoints(int r, int c)  //returning vector of diagonal neighbors coords
 {
 	vector<std::pair<int, int>> points{
 		std::pair<int, int>(r+1, c+1), 
@@ -497,7 +485,7 @@ vector<std::pair<int, int>> CFigureRecognition::getDiagonalPoints(int r, int c)
 	return points;
 }
 
-vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c)
+vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c) //returning vector of orthogonal neighbors
 {
 	return vector<std::pair<int, int>> { 
 		std::pair<int, int>(r, c + 1),
@@ -507,43 +495,5 @@ vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c)
 	};
 }
 
-void CFigureRecognition::saveToFile(std::string fileName)
-{
-	std::ofstream file;
-	
-	for (auto x : (*m_figurePoints))
-	{
-		file.open("data.txt", std::ios_base::app);
-		file << fileName << '\n';
-		file << "Label: " << x.second.label << '\n';
-		file << "Square: " << x.second.square << '\n';
-		file << "Circularity: " << x.second.circularity << '\n';
-		file << "Haralicks: " << x.second.haralickCircularity << '\n';
-		file << "Radial distance ratio: " << x.second.maxRadialDistance / x.second.minRadialDistance << '\n';
-		file << std::endl;
-		file.close();
-	}
-}
 
-//void gatherData(void)
-//{
-//	vector<std::string> fileList{
-//		"circle5.txt", "circle6a.txt",
-//		"circle6b.txt",
-//		"circle7.txt", "circle8.txt",
-//		"circle9a.txt", "circle9b.txt",
-//		"circle9c.txt", "circle10a.txt",
-//		"circle10b.txt", "circle10c.txt",
-//		"square5.txt", "square6.txt",
-//		"square7.txt", "square8.txt",
-//		"square9.txt", "square10.txt", };
-//	
-//	for (auto file : fileList)
-//	{
-//		CFigureRecognition instance;
-//		instance.readFile(file);
-//		instance.markFigures();
-//		instance._showFiguresList();
-//		instance.saveToFile(file);
-//	}
-//}
+
