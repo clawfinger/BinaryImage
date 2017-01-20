@@ -10,28 +10,10 @@
 #include <algorithm>
 #include <cmath>
 
+#define MATRIX_RESOLUTION 15
 using std::vector;
 
-struct SFigure
-{
-	SFigure(int l, int r, int c);
-	int label;
-	int row;
-	int column;
-	int square;
-	double perimeter;
-	double centroidRow;
-	double centroidColumn;
-	double haralickCircularity;
-	double circularity;
-	double minRadialDistance;
-	double maxRadialDistance;
-	double radialDistanceRatio;
-	int extremalAxisLength;
-	vector<int> centroidRows;
-	vector<int> centroidColumns;
-	vector<std::pair<int, int>> borderPoints;
-};
+
 
 
 class CFigureRecognition
@@ -40,17 +22,39 @@ public:
 	CFigureRecognition(int resolution = MATRIX_RESOLUTION);
 	~CFigureRecognition();
 	bool readFile(std::string);
-	void showImage();
 	void makeDecision();
-	enum { MATRIX_RESOLUTION = 15 };
+
+
 private:	
+
+	struct SFigure //structure, describing figure properties
+	{
+		SFigure(int l, int r, int c);
+		int label;
+		int row;
+		int column;
+		int square;
+		double perimeter;
+		double centroidRow;
+		double centroidColumn;
+		double haralickCircularity;
+		double circularity;
+		double minRadialDistance;
+		double maxRadialDistance;
+		double radialDistanceRatio;
+		int extremalAxisLength;
+		vector<int> centroidRows;
+		vector<int> centroidColumns;
+		vector<std::pair<int, int>> borderPoints;
+	};
+
+	//members
 	int m_parentArray[MATRIX_RESOLUTION + 1];
+	std::vector<std::vector<int>> m_image;
+	std::vector<std::vector<int>> m_tempImage;
+	std::map<int, SFigure> m_figurePoints;	
 
-	std::vector<std::vector<int>>* m_image;
-	std::vector<std::vector<int>>* m_tempImage;
-
-	std::map<int, SFigure>* m_figurePoints;	
-
+private:
 	int findParent(int label);
 	void unionParent(int B, int C);
 	void makeParent(int label);
@@ -65,8 +69,7 @@ private:
 	void calculateAxis();
 
 	vector<std::pair<int, int>> getDiagonalPoints(int r, int c);
-	vector<std::pair<int, int>> getNeighborPoints(int r, int c);
-	
+	vector<std::pair<int, int>> getNeighborPoints(int r, int c);	
 
 };
 
