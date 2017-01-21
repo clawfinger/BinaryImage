@@ -19,7 +19,7 @@ using std::vector;
 class CFigureRecognition
 {
 public:
-	CFigureRecognition(int resolution = MATRIX_RESOLUTION);
+	CFigureRecognition();
 	~CFigureRecognition();
 	bool readFile(std::string);
 	void makeDecision();

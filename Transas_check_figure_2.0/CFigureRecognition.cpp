@@ -20,10 +20,10 @@ CFigureRecognition::SFigure::SFigure(int l, int r, int c)
 }
 
 
-CFigureRecognition::CFigureRecognition(int resolution)
+CFigureRecognition::CFigureRecognition()
 {
-	m_image = vector<vector<int>>(resolution, vector<int>(resolution));
-	m_tempImage =  vector<vector<int>>(resolution, vector<int>(resolution));
+	m_image.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
+	m_tempImage.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
 }
 
 CFigureRecognition::~CFigureRecognition()
@@ -327,11 +327,11 @@ void CFigureRecognition::calculateHaralickCircularity()
 
 		for (auto borderPoint : figures.second.borderPoints)
 		{
-			sum += std::pow(std::sqrtf(std::pow((borderPoint.first - centroidRow), 2)
+			sum += std::pow(std::sqrt(std::pow((borderPoint.first - centroidRow), 2)
 				+ std::pow((borderPoint.second - centroidColumn), 2)) - meanRadialDistance, 2);
 		}
 
-		standartDeviation = std::sqrtf(sum / figures.second.borderPoints.size());
+		standartDeviation = std::sqrt(sum / figures.second.borderPoints.size());
 		m_figurePoints.at(figures.first).haralickCircularity = meanRadialDistance / standartDeviation;
 		
 	}
