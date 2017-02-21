@@ -22,8 +22,8 @@ CFigureRecognition::SFigure::SFigure(int l, int r, int c)
 
 CFigureRecognition::CFigureRecognition()
 {
-	m_image.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
-	m_tempImage.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
+	//m_image.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
+	//m_tempImage.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
 }
 
 CFigureRecognition::~CFigureRecognition()
@@ -44,23 +44,23 @@ bool CFigureRecognition::readFile(std::string fileName)
 	char character;
 	input.get(character);
 
-	int r, c;
-	for (r = 0; r < MATRIX_RESOLUTION; r++)  
+	int i = 0;
+	while(true)
 	{
-		for (c = 0; c < MATRIX_RESOLUTION; c++)	
+		m_image.push_back(std::vector<int>());  //added
+		while(character != '\n')
 		{
-			if (character != '\n')
-			{
-				m_image[r][c] = (std::stoi(&character));
-			
-			}
-			else break;
+			m_image[i].push_back(std::stoi(&character));
 			input.get(character);
 		}
+		i++;
 		input.get(character);
+		if (input.peek() == EOF)
+			break;
 		
 	}
 	input.close();
+	m_matrixResolution = m_image[0].size();
 	return true;
 
 }
@@ -81,9 +81,9 @@ void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-f
 	*/
 	int currentNum = 1;
 	int B, C;
-	for (int r = 1; r < MATRIX_RESOLUTION; r++)
+	for (int r = 1; r < m_matrixResolution; r++)
 	{
-		for (int c = 1; c < MATRIX_RESOLUTION; c++)
+		for (int c = 1; c < m_matrixResolution; c++)
 		{
 			
 			B = m_image[r][c - 1];
@@ -124,9 +124,9 @@ void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-f
 	}
 
 
-	for (int r = 0; r < MATRIX_RESOLUTION; r++)
+	for (int r = 0; r < m_matrixResolution; r++)
 	{
-		for (int c = 0; c < MATRIX_RESOLUTION; c++)
+		for (int c = 0; c < m_matrixResolution; c++)
 		{
 			int A = m_image[r][c];
 			{
@@ -189,11 +189,12 @@ void CFigureRecognition::makeParent(int label)
 
 void CFigureRecognition::figureClosing()
 {
+	m_tempImage.resize(m_matrixResolution, vector<int>(m_matrixResolution));
 	//dilation
 	int r, c;
-	for (r = 0; r < MATRIX_RESOLUTION; r++)
+	for (r = 0; r < m_matrixResolution; r++)
 	{
-		for (c = 0; c < MATRIX_RESOLUTION; c++)
+		for (c = 0; c < m_matrixResolution; c++)
 		{
 			if (m_image[r][c] == 1)
 			{
@@ -205,9 +206,9 @@ void CFigureRecognition::figureClosing()
 		}
 	}
 	//erosion
-	for (r = 0; r < MATRIX_RESOLUTION; r++)
+	for (r = 0; r < m_matrixResolution; r++)
 	{
-		for (c = 0; c < MATRIX_RESOLUTION; c++)
+		for (c = 0; c < m_matrixResolution; c++)
 		{
 			bool B = false;
 			bool C = false;
@@ -232,7 +233,7 @@ void CFigureRecognition::figureClosing()
 				{
 					C = true;
 				}
-				if ((c + 1) >= MATRIX_RESOLUTION)
+				if ((c + 1) >= m_matrixResolution)
 				{
 					D = false;
 				}
@@ -240,7 +241,7 @@ void CFigureRecognition::figureClosing()
 				{
 					D = true;
 				}
-				if ((r + 1) >= MATRIX_RESOLUTION)
+				if ((r + 1) >= m_matrixResolution)
 				{
 					E = false;
 				}

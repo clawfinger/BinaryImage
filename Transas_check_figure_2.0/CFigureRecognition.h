@@ -49,6 +49,7 @@ private:
 	};
 
 	//members
+	int m_matrixResolution;
 	int m_parentArray[MATRIX_RESOLUTION];
 	std::vector<std::vector<int>> m_image;
 	std::vector<std::vector<int>> m_tempImage;
