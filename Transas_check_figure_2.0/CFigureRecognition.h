@@ -34,17 +34,18 @@ private:
 		int row;
 		int column;
 		int square;
-		double perimeter;
-		double centroidRow;
-		double centroidColumn;
-		double haralickCircularity;
-		double circularity;
-		double minRadialDistance;
-		double maxRadialDistance;
-		double radialDistanceRatio;
+		float perimeter;
+		float centroidRow;
+		float centroidColumn;
+		float haralickCircularity;
+		float circularity;
+		float minRadialDistance;
+		float maxRadialDistance;
+		float radialDistanceRatio;
+		float secondOrderRowMoment;
+		float secondOrderColumnMoment;
 		int extremalAxisLength;
-		vector<int> centroidRows;
-		vector<int> centroidColumns;
+		vector<std::pair<int, int>> figurePoints;
 		vector<std::pair<int, int>> borderPoints;
 	};
 
@@ -68,7 +69,7 @@ private:
 	void calculateCircularity();
 	void calculateCentroid();	
 	void calculateAxis();
-
+	void calculateMoments();
 	vector<std::pair<int, int>> getDiagonalPoints(int r, int c);
 	vector<std::pair<int, int>> getNeighborPoints(int r, int c);	
 

@@ -60,7 +60,7 @@ bool CFigureRecognition::readFile(std::string fileName)
 		
 	}
 	input.close();
-	m_matrixResolution = m_image[0].size();
+	m_matrixResolution = int(m_image[0].size());
 	return true;
 
 }
@@ -142,9 +142,7 @@ void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-f
 					//square
 					m_figurePoints.at(currentLabel).square++;
 					//gathering data for calculating centroid
-					m_figurePoints.at(currentLabel).centroidRows.push_back(r);
-					m_figurePoints.at(currentLabel).centroidColumns.push_back(c);
-
+					m_figurePoints.at(currentLabel).figurePoints.push_back(std::pair<int, int>(r, c));
 					//border points
 					if (isBorderPoint(r, c))
 					{
@@ -285,19 +283,19 @@ bool CFigureRecognition::isBorderPoint(int r, int c)
 
 void CFigureRecognition::calculateHaralickCircularity()
 {
-	double meanRadialDistance = 0.0;
-	double standartDeviation = 0.0;
+	float meanRadialDistance = 0.0;
+	float standartDeviation = 0.0;
 	for (auto figures : m_figurePoints)
 	{
-		double centroidRow = figures.second.centroidRow;
-		double centroidColumn = figures.second.centroidColumn;
+		float centroidRow = figures.second.centroidRow;
+		float centroidColumn = figures.second.centroidColumn;
 
-		double sum = 0;
-		double radialDistance = 0;
+		float sum = 0;
+		float radialDistance = 0;
 
-		double min = std::sqrt(std::pow((figures.second.row - centroidRow), 2)
+		float min = std::sqrt(std::pow((figures.second.row - centroidRow), 2)
 			+ std::pow((figures.second.column - centroidColumn), 2));
-		double max = min;
+		float max = min;
 
 		for (auto borderPoint : figures.second.borderPoints)
 		{
@@ -351,22 +349,19 @@ void CFigureRecognition::calculateCircularity()
 
 void CFigureRecognition::calculateCentroid()
 {
-	for (auto x : m_figurePoints)
+	for (auto figure : m_figurePoints)
 	{
 		int sumOfRows = 0;
 		int sumOfColumns = 0;
-		int sizeOfRows = x.second.centroidRows.size();
-		int sizeOfColumns = x.second.centroidColumns.size();
-		for (auto i : x.second.centroidColumns)
+		int size = (int)figure.second.figurePoints.size();
+
+		for (auto point : figure.second.figurePoints)
 		{
-			sumOfColumns += i;
+			sumOfColumns += point.second;
+			sumOfRows += point.first;
 		}
-		for (auto i : x.second.centroidRows)
-		{
-			sumOfRows += i;
-		}
-		m_figurePoints.at(x.first).centroidRow = (double(sumOfRows) / sizeOfRows);
-		m_figurePoints.at(x.first).centroidColumn = (double(sumOfColumns) / sizeOfColumns);
+		m_figurePoints.at(figure.first).centroidRow = (float(sumOfRows) / size);
+		m_figurePoints.at(figure.first).centroidColumn = (float(sumOfColumns) / size);
 	}
 }
 
@@ -401,6 +396,22 @@ void CFigureRecognition::calculateAxis()  //calculating the length of X axis of 
 		}
 		xAxisLenght = max - min;
 		m_figurePoints.at(figure.first).extremalAxisLength = xAxisLenght + 1;
+	}
+}
+
+void CFigureRecognition::calculateMoments()
+{
+	for (auto figure : m_figurePoints)
+	{
+		float sumOfRowDifference = 0;
+		float sumOfColumnDifference = 0;
+		for (auto point : figure.second.figurePoints)
+		{
+			sumOfRowDifference += std::pow((point.first - figure.second.centroidRow), 2);
+			sumOfColumnDifference += std::pow((point.second - figure.second.centroidColumn), 2);
+		}
+		m_figurePoints.at(figure.first).secondOrderRowMoment = (float)sumOfRowDifference / figure.second.square;
+		m_figurePoints.at(figure.first).secondOrderColumnMoment = (float)sumOfColumnDifference / figure.second.square;
 	}
 }
 
@@ -474,18 +485,19 @@ void CFigureRecognition::makeDecision()
 	calculateHaralickCircularity();
 	calculateCircularity();
 	calculateAxis();
-
+	calculateMoments();
 
 	for (auto figure : m_figurePoints)
 	{
-		figure.second.radialDistanceRatio *= 10;
 		//magic numbers picked from data.txt
 		std::cout << "Figure label: " << figure.first << std::endl;
-		if (figure.second.square < 21 || figure.second.square > 100)
+		std::cout << "Row moment: " << figure.second.secondOrderRowMoment << std::endl;
+		std::cout << "Column moment: " << figure.second.secondOrderColumnMoment << std::endl;
+		/*if (figure.second.square < 21 || figure.second.square > 100)
 			std::cout << "Unknown figure" << std::endl;
-		else if (figure.second.circularity < 0.96)
-			std::cout << "Unknown figure" << std::endl;
-		else if (std::round(figure.second.radialDistanceRatio) / 10 == 1.4)
+		else*/ if (figure.second.circularity < 0.96)
+			std::cout << "Unknown figure" << std::endl;	
+		else	 if (std::abs(figure.second.radialDistanceRatio - 1.4) < 0.02)
 		{
 			std::cout << "Its s square! Upper leftmost corner [row:column]: [" << figure.second.row
 				<< ':' << figure.second.column << ']' << std::endl;
