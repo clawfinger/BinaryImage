@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-#define MATRIX_RESOLUTION 15
+
 using std::vector;
 
 
@@ -34,13 +34,10 @@ private:
 		int row;
 		int column;
 		int square;
-		float perimeter;
+		//float perimeter;
 		float centroidRow;
 		float centroidColumn;
 		float haralickCircularity;
-		float circularity;
-		float minRadialDistance;
-		float maxRadialDistance;
 		float radialDistanceRatio;
 		float secondOrderRowMoment;
 		float secondOrderColumnMoment;
@@ -51,7 +48,7 @@ private:
 
 	//members
 	int m_matrixResolution;
-	int m_parentArray[MATRIX_RESOLUTION];
+	int m_parentArray[100];
 	std::vector<std::vector<int>> m_image;
 	std::vector<std::vector<int>> m_tempImage;
 	std::map<int, SFigure> m_figurePoints;	
@@ -63,14 +60,11 @@ private:
 
 	void markFigures();
 	void figureClosing();
-	void calculatePerimeter();
 	bool isBorderPoint(int r, int c);
 	void calculateHaralickCircularity();
-	void calculateCircularity();
 	void calculateCentroid();	
 	void calculateAxis();
 	void calculateMoments();
-	vector<std::pair<int, int>> getDiagonalPoints(int r, int c);
 	vector<std::pair<int, int>> getNeighborPoints(int r, int c);	
 
 };

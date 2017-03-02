@@ -9,21 +9,17 @@ CFigureRecognition::SFigure::SFigure(int l, int r, int c)
 	label = l;
 	row = r;
 	column = c;
-	perimeter = 0;
 	square = 0;
-	circularity = 0;
 	haralickCircularity = 0;
-	minRadialDistance = 0;
-	maxRadialDistance = 0;
 	centroidRow = -1;
 	centroidColumn = -1;
+	secondOrderRowMoment = 0;
+	secondOrderColumnMoment = 0;
 }
 
 
 CFigureRecognition::CFigureRecognition()
 {
-	//m_image.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
-	//m_tempImage.resize(MATRIX_RESOLUTION, vector<int>(MATRIX_RESOLUTION));
 }
 
 CFigureRecognition::~CFigureRecognition()
@@ -47,7 +43,7 @@ bool CFigureRecognition::readFile(std::string fileName)
 	int i = 0;
 	while(true)
 	{
-		m_image.push_back(std::vector<int>());  //added
+		m_image.push_back(std::vector<int>()); 
 		while(character != '\n')
 		{
 			m_image[i].push_back(std::stoi(&character));
@@ -316,8 +312,6 @@ void CFigureRecognition::calculateHaralickCircularity()
 			sum += radialDistance;
 		}
 
-		m_figurePoints.at(figures.first).minRadialDistance = min;
-		m_figurePoints.at(figures.first).maxRadialDistance = max;
 		m_figurePoints.at(figures.first).radialDistanceRatio = max / min;
 
 		meanRadialDistance = sum / figures.second.borderPoints.size();
@@ -337,15 +331,7 @@ void CFigureRecognition::calculateHaralickCircularity()
 
 }
 
-void CFigureRecognition::calculateCircularity()
-{
-	for (auto figure : m_figurePoints)
-	{
-		m_figurePoints.at(figure.first).circularity = (4 * figure.second.square * 3.14159) / std::pow(figure.second.perimeter, 2);
-		//m_figurePoints->at(figure.first).circularity = std::pow(figure.second.perimeter, 2) / figure.second.square;
-		//m_figurePoints->at(figure.first).circularity = figure.second.square / std::pow(figure.second.perimeter, 2);
-	}
-}
+//calculating centroid
 
 void CFigureRecognition::calculateCentroid()
 {
@@ -365,7 +351,8 @@ void CFigureRecognition::calculateCentroid()
 	}
 }
 
-void CFigureRecognition::calculateAxis()  //calculating the length of X axis of figure
+//calculating the length of X axis of figure
+void CFigureRecognition::calculateAxis()  
 {
 	int xAxisLenght = 0;
 	int yAxisLenght = 0;
@@ -399,6 +386,9 @@ void CFigureRecognition::calculateAxis()  //calculating the length of X axis of 
 	}
 }
 
+
+//calculation second-order row and column moments
+
 void CFigureRecognition::calculateMoments()
 {
 	for (auto figure : m_figurePoints)
@@ -415,58 +405,9 @@ void CFigureRecognition::calculateMoments()
 	}
 }
 
+//returning vector of orthogonal neighbors
 
-
-
-
-
-
-void CFigureRecognition::calculatePerimeter()
-{
-
-	//P = K + A(sqrt(2)-1)
-	for (auto figure : m_figurePoints)
-	{
-		int numOfDiagonalConnections = 0;
-		for (auto borderPoint : figure.second.borderPoints)
-		{
-			//checking diagonal neighbors
-			vector<std::pair<int, int>> diagonalPoints = getDiagonalPoints(borderPoint.first, borderPoint.second);
-			for (auto x : diagonalPoints)
-			{
-				if (isBorderPoint(x.first, x.second))
-				{
-					//Incrementing A if both points betwin checked pair is not border points
-					if (!isBorderPoint(borderPoint.first, x.second) && !isBorderPoint(x.first, borderPoint.second))
-					{
-						numOfDiagonalConnections++;
-					}
-				}
-			}
-
-			
-		}
-		m_figurePoints.at(figure.first).perimeter = figure.second.borderPoints.size() + 
-			(numOfDiagonalConnections * (std::sqrt(2) - 1))/2;
-	}
-	
-	
-}
-
-
-
-vector<std::pair<int, int>> CFigureRecognition::getDiagonalPoints(int r, int c)  //returning vector of diagonal neighbors coords
-{
-	vector<std::pair<int, int>> points{
-		std::pair<int, int>(r+1, c+1), 
-		std::pair<int, int>(r - 1, c - 1), 
-		std::pair<int, int>(r - 1, c + 1),
-		std::pair<int, int>(r + 1, c - 1)
-	};
-	return points;
-}
-
-vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c) //returning vector of orthogonal neighbors
+vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c) 
 {
 	return vector<std::pair<int, int>> { 
 		std::pair<int, int>(r, c + 1),
@@ -476,41 +417,59 @@ vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c) 
 	};
 }
 
+
+/* 
+
+Marking figures. Closing. Gathering figure shape parameters:
+Centroid, Circularity, Length of axis, and moments 
+and making decision based on those parameters
+
+*/
+
 void CFigureRecognition::makeDecision()
 {
 	markFigures();
 	figureClosing();
 	calculateCentroid();
-	calculatePerimeter();
 	calculateHaralickCircularity();
-	calculateCircularity();
 	calculateAxis();
 	calculateMoments();
 
 	for (auto figure : m_figurePoints)
 	{
-		//magic numbers picked from data.txt
-		std::cout << "Figure label: " << figure.first << std::endl;
-		std::cout << "Row moment: " << figure.second.secondOrderRowMoment << std::endl;
-		std::cout << "Column moment: " << figure.second.secondOrderColumnMoment << std::endl;
-		/*if (figure.second.square < 21 || figure.second.square > 100)
+		//numbers picked on a base of multiple instance images
+		float radialDistanceRatioDelta = 0.02;
+		int haralickCircularityDelta = 15;
+		float momentRatioDelta = 0.04;
+
+		//decision tree
+		float momentRatio = std::abs(1 - figure.second.secondOrderRowMoment / figure.second.secondOrderColumnMoment);
+		if (momentRatio >= momentRatioDelta)
 			std::cout << "Unknown figure" << std::endl;
-		else*/ if (figure.second.circularity < 0.96)
-			std::cout << "Unknown figure" << std::endl;	
-		else	 if (std::abs(figure.second.radialDistanceRatio - 1.4) < 0.02)
+		else if (std::abs(figure.second.radialDistanceRatio - 1.4) < radialDistanceRatioDelta)
 		{
 			std::cout << "Its s square! Upper leftmost corner [row:column]: [" << figure.second.row
 				<< ':' << figure.second.column << ']' << std::endl;
 			std::cout << "Square side is: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
+			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
+			{
+				std::cout << "Square does not satisfy the conditions" << std::endl;
+			}
 		}
-		else if (std::round(figure.second.haralickCircularity) >= 15)
+		else if (std::round(figure.second.haralickCircularity) >= haralickCircularityDelta)
 		{
 			std::cout << "Its a circle! Center coordinates are: [" << figure.second.centroidRow << ':'
 				<< figure.second.centroidColumn << ']' << std::endl;
 			std::cout << "Diameter of circle: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
+			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
+			{
+				std::cout << "Circle does not satisfy the conditions" << std::endl;
+			}
 		}
 		else
 			std::cout << "Unknown figure" << std::endl;
+
+		
 	}
 }
 
