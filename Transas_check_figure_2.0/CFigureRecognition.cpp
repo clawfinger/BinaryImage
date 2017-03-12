@@ -33,7 +33,7 @@ bool CFigureRecognition::readFile(std::string fileName)
 
 	if (!input.is_open())
 	{
-		std::cout << "File open failure";
+		std::cout << "File open failure" << std::endl;
 		return false;
 	}
 
@@ -448,23 +448,25 @@ void CFigureRecognition::makeDecision()
 			std::cout << "Unknown figure" << std::endl;
 		else if (std::abs(figure.second.radialDistanceRatio - 1.4) < radialDistanceRatioDelta)
 		{
+			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
+			{
+				std::cout << "Unknown figure" << std::endl;
+			}
 			std::cout << "Its s square! Upper leftmost corner [row:column]: [" << figure.second.row
 				<< ':' << figure.second.column << ']' << std::endl;
 			std::cout << "Square side is: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
-			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
-			{
-				std::cout << "Square does not satisfy the conditions" << std::endl;
-			}
+
 		}
 		else if (std::round(figure.second.haralickCircularity) >= haralickCircularityDelta)
 		{
+			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
+			{
+				std::cout << "Unknown figure" << std::endl;
+			}
 			std::cout << "Its a circle! Center coordinates are: [" << figure.second.centroidRow << ':'
 				<< figure.second.centroidColumn << ']' << std::endl;
 			std::cout << "Diameter of circle: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
-			if (figure.second.extremalAxisLength < 5 || figure.second.extremalAxisLength > 10)
-			{
-				std::cout << "Circle does not satisfy the conditions" << std::endl;
-			}
+
 		}
 		else
 			std::cout << "Unknown figure" << std::endl;
