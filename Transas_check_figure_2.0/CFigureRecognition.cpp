@@ -530,60 +530,6 @@ void CFigureRecognition::makeDecision()
 
 
 	}
-	//vector<vector<float>> dataSet = UTILreadDataToTeach();
-	//Neuron neuro("squareLayerWeights.txt");
-	//for (auto vector : dataSet)
-	//{
-	//	neuro.analize(vector);
-	//}
-	//neuro.teach(dataSet);
-	//UTILgatherSquareData(m_figurePoints);
-//}
-
-//void CFigureRecognition::UTILgatherSquareData(std::map<int, SFigure> figureList)
-//{
-//	std::ofstream out("circles.txt", std::ios_base::app);
-//	for (auto figure : figureList)
-//	{
-//		out << figure.second.momentsRatio << '\t' <<
-//			figure.second.radialDistanceRatio << '\t' <<
-//			figure.second.haralickCircularity << '\t' <<
-//			((float)figure.second.boundingBoxArea / (float)(figure.second.area)) << '\n';
-//	}
-//	out.close();
-//}
-//
-//vector<vector<float>> CFigureRecognition::UTILreadDataToTeach()
-//{
-//	std::string fileName("squareOutput.txt");
-//	std::ifstream input(fileName);
-//
-//	if (!input.is_open())
-//	{
-//		std::cout << "File open failure" << std::endl;
-//	}
-//	vector<vector<float>> result;
-//	int vectorIndex = 0;
-//	std::string line;
-//	std::getline(input, line);
-//	while (line !=  "")   //read stream line by line
-//	{
-//		result.push_back(std::vector<float>());
-//
-//		std::istringstream in(line);
-//		for (int i = 0; i < 2; i++)
-//		{
-//			float data;
-//			in >> data;
-//			result[vectorIndex].push_back(data);
-//		}
-//		vectorIndex++;
-//		std::getline(input, line);
-//	}
-//
-//
-//	return result;
-//}
 
 
 
