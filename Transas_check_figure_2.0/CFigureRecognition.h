@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <sstream>
+#include "Perceptron.h"
 
 using std::vector;
 
@@ -33,15 +35,14 @@ private:
 		int label;
 		int row;
 		int column;
-		int square;
-		//float perimeter;
+		int area;
 		float centroidRow;
 		float centroidColumn;
 		float haralickCircularity;
 		float radialDistanceRatio;
-		float secondOrderRowMoment;
-		float secondOrderColumnMoment;
+		float momentsRatio;
 		int extremalAxisLength;
+		int boundingBoxArea;
 		vector<std::pair<int, int>> figurePoints;
 		vector<std::pair<int, int>> borderPoints;
 	};
@@ -65,7 +66,12 @@ private:
 	void calculateCentroid();	
 	void calculateAxis();
 	void calculateMoments();
+	void calculateBoundingBox();
 	vector<std::pair<int, int>> getNeighborPoints(int r, int c);	
+
+
+	void UTILgatherSquareData(std::map<int, SFigure>);
+	vector<vector<float>> UTILreadDataToTeach();
 
 };
 

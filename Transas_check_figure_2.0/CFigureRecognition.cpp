@@ -9,12 +9,11 @@ CFigureRecognition::SFigure::SFigure(int l, int r, int c)
 	label = l;
 	row = r;
 	column = c;
-	square = 0;
+	area = 0;
 	haralickCircularity = 0;
 	centroidRow = -1;
 	centroidColumn = -1;
-	secondOrderRowMoment = 0;
-	secondOrderColumnMoment = 0;
+	boundingBoxArea = 0;
 }
 
 
@@ -65,7 +64,7 @@ bool CFigureRecognition::readFile(std::string fileName)
 
 
 
-void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-find 
+void CFigureRecognition::markFigures()   //classical 2 pass marking algorithm with union-find 
 {
 	/*
 	  _
@@ -135,8 +134,8 @@ void CFigureRecognition::markFigures()   //2 pass marking algorithm with union-f
 					int currentLabel = findParent(A);
 					m_image[r][c] = currentLabel;
 					m_figurePoints.emplace(currentLabel, SFigure(currentLabel, r, c));
-					//square
-					m_figurePoints.at(currentLabel).square++;
+					//area
+					m_figurePoints.at(currentLabel).area++;
 					//gathering data for calculating centroid
 					m_figurePoints.at(currentLabel).figurePoints.push_back(std::pair<int, int>(r, c));
 					//border points
@@ -183,6 +182,16 @@ void CFigureRecognition::makeParent(int label)
 
 void CFigureRecognition::figureClosing()
 {
+
+	/*
+	
+	|C|
+  |B|A|D|  4-connected mask
+	|E|
+
+
+	*/
+
 	m_tempImage.resize(m_matrixResolution, vector<int>(m_matrixResolution));
 	//dilation
 	int r, c;
@@ -192,7 +201,7 @@ void CFigureRecognition::figureClosing()
 		{
 			if (m_image[r][c] == 1)
 			{
-				for (auto neighborPoint : getNeighborPoints(r, c))
+				for (auto &neighborPoint : getNeighborPoints(r, c))
 				{
 					m_tempImage[neighborPoint.first][neighborPoint.second] = 1;
 				}
@@ -276,12 +285,11 @@ bool CFigureRecognition::isBorderPoint(int r, int c)
 }
 
 //calculating the circularity parameter by Robert M. Haralick
-
 void CFigureRecognition::calculateHaralickCircularity()
 {
 	float meanRadialDistance = 0.0;
 	float standartDeviation = 0.0;
-	for (auto figures : m_figurePoints)
+	for (auto &figures : m_figurePoints)
 	{
 		float centroidRow = figures.second.centroidRow;
 		float centroidColumn = figures.second.centroidColumn;
@@ -293,7 +301,7 @@ void CFigureRecognition::calculateHaralickCircularity()
 			+ std::pow((figures.second.column - centroidColumn), 2));
 		float max = min;
 
-		for (auto borderPoint : figures.second.borderPoints)
+		for (auto &borderPoint : figures.second.borderPoints)
 		{
 			radialDistance = std::sqrt(std::pow((borderPoint.first - centroidRow), 2)
 				+ std::pow((borderPoint.second - centroidColumn), 2));
@@ -318,7 +326,7 @@ void CFigureRecognition::calculateHaralickCircularity()
 
 		sum = 0;
 
-		for (auto borderPoint : figures.second.borderPoints)
+		for (auto &borderPoint : figures.second.borderPoints)
 		{
 			sum += std::pow(std::sqrt(std::pow((borderPoint.first - centroidRow), 2)
 				+ std::pow((borderPoint.second - centroidColumn), 2)) - meanRadialDistance, 2);
@@ -332,16 +340,15 @@ void CFigureRecognition::calculateHaralickCircularity()
 }
 
 //calculating centroid
-
 void CFigureRecognition::calculateCentroid()
 {
-	for (auto figure : m_figurePoints)
+	for (auto &figure : m_figurePoints)
 	{
 		int sumOfRows = 0;
 		int sumOfColumns = 0;
 		int size = (int)figure.second.figurePoints.size();
 
-		for (auto point : figure.second.figurePoints)
+		for (auto &point : figure.second.figurePoints)
 		{
 			sumOfColumns += point.second;
 			sumOfRows += point.first;
@@ -356,11 +363,11 @@ void CFigureRecognition::calculateAxis()
 {
 	int xAxisLenght = 0;
 	int yAxisLenght = 0;
-	for (auto figure : m_figurePoints)
+	for (auto &figure : m_figurePoints)
 	{
 		int min = figure.second.borderPoints[0].first;
 		int max = figure.second.borderPoints[0].first;
-		for (auto point : figure.second.borderPoints)
+		for (auto &point : figure.second.borderPoints)
 		{
 			if (point.first < min) {
 				min = point.first;
@@ -372,7 +379,7 @@ void CFigureRecognition::calculateAxis()
 		yAxisLenght = max - min;
 		min = figure.second.borderPoints[0].second;
 		max = figure.second.borderPoints[0].second;
-		for (auto point : figure.second.borderPoints)
+		for (auto &point : figure.second.borderPoints)
 		{
 			if (point.second < min) {
 				min = point.second;
@@ -388,21 +395,45 @@ void CFigureRecognition::calculateAxis()
 
 
 //calculation second-order row and column moments
-
 void CFigureRecognition::calculateMoments()
 {
-	for (auto figure : m_figurePoints)
+	for (auto &figure : m_figurePoints)
 	{
 		float sumOfRowDifference = 0;
 		float sumOfColumnDifference = 0;
-		for (auto point : figure.second.figurePoints)
+		for (auto &point : figure.second.figurePoints)
 		{
 			sumOfRowDifference += std::pow((point.first - figure.second.centroidRow), 2);
 			sumOfColumnDifference += std::pow((point.second - figure.second.centroidColumn), 2);
 		}
-		m_figurePoints.at(figure.first).secondOrderRowMoment = (float)sumOfRowDifference / figure.second.square;
-		m_figurePoints.at(figure.first).secondOrderColumnMoment = (float)sumOfColumnDifference / figure.second.square;
+		m_figurePoints.at(figure.first).momentsRatio = std::abs(1 - ((float)sumOfRowDifference / figure.second.area / (float)sumOfColumnDifference / figure.second.area));
 	}
+}
+
+void CFigureRecognition::calculateBoundingBox()
+{
+	for (auto &figure : m_figurePoints)
+	{
+		int minRow = m_matrixResolution;
+		int maxRow = 0;
+		int minColumn = m_matrixResolution;
+		int maxColumn = 0;
+
+		for (auto &point : figure.second.borderPoints)
+		{			
+			if (point.first < minRow)
+				minRow = point.first;
+			if (point.first > maxRow)
+				maxRow = point.first;
+			if (point.second < minColumn)
+				minColumn = point.second;
+			if (point.second > maxColumn)
+				maxColumn = point.second;
+		}
+		m_figurePoints.at(figure.first).boundingBoxArea = (maxRow - minRow + 1) * (maxColumn - minColumn + 1);
+	}
+
+
 }
 
 //returning vector of orthogonal neighbors
@@ -416,6 +447,7 @@ vector<std::pair<int, int>> CFigureRecognition::getNeighborPoints(int r, int c)
 		std::pair<int, int>(r - 1, c),
 	};
 }
+
 
 
 /* 
@@ -434,16 +466,17 @@ void CFigureRecognition::makeDecision()
 	calculateHaralickCircularity();
 	calculateAxis();
 	calculateMoments();
-
-	for (auto figure : m_figurePoints)
+	calculateBoundingBox();
+	for (auto &figure : m_figurePoints)
 	{
-		//numbers picked on a base of multiple instance images
-		float radialDistanceRatioDelta = 0.02;
+
+		//numbers picked on a base of multiple instances of images
+		float radialDistanceRatioDelta = 0.02f;
 		int haralickCircularityDelta = 15;
-		float momentRatioDelta = 0.04;
+		float momentRatioDelta = 0.1f;
 
 		//decision tree
-		float momentRatio = std::abs(1 - figure.second.secondOrderRowMoment / figure.second.secondOrderColumnMoment);
+		float momentRatio = std::abs(1 - figure.second.momentsRatio);
 		if (momentRatio >= momentRatioDelta)
 			std::cout << "Unknown figure" << std::endl;
 		else if (std::abs(figure.second.radialDistanceRatio - 1.4) < radialDistanceRatioDelta)
@@ -452,6 +485,7 @@ void CFigureRecognition::makeDecision()
 			{
 				std::cout << "Unknown figure" << std::endl;
 			}
+
 			std::cout << "Its s square! Upper leftmost corner [row:column]: [" << figure.second.row
 				<< ':' << figure.second.column << ']' << std::endl;
 			std::cout << "Square side is: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
@@ -463,6 +497,7 @@ void CFigureRecognition::makeDecision()
 			{
 				std::cout << "Unknown figure" << std::endl;
 			}
+
 			std::cout << "Its a circle! Center coordinates are: [" << figure.second.centroidRow << ':'
 				<< figure.second.centroidColumn << ']' << std::endl;
 			std::cout << "Diameter of circle: " << m_figurePoints.at(figure.first).extremalAxisLength << std::endl;
@@ -470,9 +505,89 @@ void CFigureRecognition::makeDecision()
 		}
 		else
 			std::cout << "Unknown figure" << std::endl;
+		//gathering input vector for perceptron
+		std::vector<float> inputVector;
+		inputVector.push_back(figure.second.momentsRatio);
+		inputVector.push_back(figure.second.radialDistanceRatio);
+		inputVector.push_back(figure.second.haralickCircularity);
+		inputVector.push_back(((float)figure.second.boundingBoxArea / (float)(figure.second.area)));
 
-		
+		//creating neuronet
+		Perceptron firstLayer(4);
+		firstLayer.addNeuron("squareWeights.txt");
+		firstLayer.addNeuron("circleWeights.txt");
+		std::vector<float> outputVector = firstLayer.analize(inputVector);
+
+		//making decision
+		std::cout << "Neuronet answer is: ";
+		if (outputVector[0] > 99)
+			std::cout << "Its a square for " << outputVector[0] << "%" << std::endl;
+		else if (outputVector[1] > 90)
+			std::cout << "Its a circle for " << outputVector[1] << "%" << std::endl;
+		std::cout << "**********************************************************" << std::endl;
 	}
-}
+
+
+
+	}
+	//vector<vector<float>> dataSet = UTILreadDataToTeach();
+	//Neuron neuro("squareLayerWeights.txt");
+	//for (auto vector : dataSet)
+	//{
+	//	neuro.analize(vector);
+	//}
+	//neuro.teach(dataSet);
+	//UTILgatherSquareData(m_figurePoints);
+//}
+
+//void CFigureRecognition::UTILgatherSquareData(std::map<int, SFigure> figureList)
+//{
+//	std::ofstream out("circles.txt", std::ios_base::app);
+//	for (auto figure : figureList)
+//	{
+//		out << figure.second.momentsRatio << '\t' <<
+//			figure.second.radialDistanceRatio << '\t' <<
+//			figure.second.haralickCircularity << '\t' <<
+//			((float)figure.second.boundingBoxArea / (float)(figure.second.area)) << '\n';
+//	}
+//	out.close();
+//}
+//
+//vector<vector<float>> CFigureRecognition::UTILreadDataToTeach()
+//{
+//	std::string fileName("squareOutput.txt");
+//	std::ifstream input(fileName);
+//
+//	if (!input.is_open())
+//	{
+//		std::cout << "File open failure" << std::endl;
+//	}
+//	vector<vector<float>> result;
+//	int vectorIndex = 0;
+//	std::string line;
+//	std::getline(input, line);
+//	while (line !=  "")   //read stream line by line
+//	{
+//		result.push_back(std::vector<float>());
+//
+//		std::istringstream in(line);
+//		for (int i = 0; i < 2; i++)
+//		{
+//			float data;
+//			in >> data;
+//			result[vectorIndex].push_back(data);
+//		}
+//		vectorIndex++;
+//		std::getline(input, line);
+//	}
+//
+//
+//	return result;
+//}
+
+
+
+
+
 
 
